@@ -139,3 +139,27 @@ jobs:
             --input /tmp/incidentcommand-pod.json \
             --fail \
             'data.incidentcommand.security.deny == set()'
+
+  trivy-scan:
+    name: 🐳 Trivy Container Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Build Incident Command image
+        run: |
+          docker build \
+            -t incidentcmd-api:latest \
+            -f backend/Containerfile \
+            backend/
+
+      - name: 🛡️ Scan container with Trivy
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: incidentcmd-api:latest
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          ignore-unfixed: false
