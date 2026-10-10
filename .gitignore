@@ -1,0 +1,39 @@
+# Node.js
+node_modules/
+npm-debug.log*
+dist/
+build/
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Security scan outputs
+semgrep-results.json
+bandit-results.json
+trivy-results.json
+grype-results.json
