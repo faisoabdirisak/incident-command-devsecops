@@ -191,3 +191,31 @@ jobs:
           grype docker:incidentcmd-api:latest \
             --only-fixed \
             --output table
+
+  snyk-sca:
+    name: 🔐 Snyk Dependency Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 📦 Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: 🛡️ Install Snyk
+        run: npm install -g snyk@1.1308.0
+
+      - name: 🔍 Scan backend dependencies
+        working-directory: backend
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --file=package-lock.json
