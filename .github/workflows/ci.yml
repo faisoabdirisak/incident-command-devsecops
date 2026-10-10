@@ -163,3 +163,31 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "0"
           ignore-unfixed: false
+    
+  grype-scan:
+    name: 🛡️ Grype Container Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Build Incident Command image
+        run: |
+          docker build \
+            -t incidentcmd-api:latest \
+            -f backend/Containerfile \
+            backend/
+
+      - name: 📦 Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
+            | sh -s -- -b /usr/local/bin
+
+          grype version
+
+      - name: 🔍 Scan container image
+        run: |
+          grype docker:incidentcmd-api:latest \
+            --only-fixed \
+            --output table
