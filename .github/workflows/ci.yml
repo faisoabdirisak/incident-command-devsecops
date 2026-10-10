@@ -163,7 +163,7 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "0"
           ignore-unfixed: false
-    
+
   grype-scan:
     name: 🛡️ Grype Container Vulnerability Scan
     runs-on: ubuntu-latest
@@ -219,3 +219,51 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk test --file=package-lock.json
+
+  deploy-stub:
+    name: 🚀 Deployment Stub
+    runs-on: ubuntu-latest
+
+    needs:
+      - backend-lint
+      - opa-policy
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Build Incident Command API image
+        run: |
+          docker build \
+            -t incidentcmd-api:latest \
+            -f backend/Containerfile \
+            backend/
+
+      - name: 🚀 Start API container
+        run: |
+          docker run -d \
+            --name incidentcmd-api \
+            -p 3000:3000 \
+            incidentcmd-api:latest
+
+      - name: 🩺 Verify API health
+        run: |
+          for attempt in $(seq 1 15); do
+            if curl --fail --silent http://localhost:3000/health; then
+              echo
+              echo "✅ Incident Command API is healthy"
+              exit 0
+            fi
+
+            echo "Waiting for API... attempt $attempt"
+            sleep 2
+          done
+
+          echo "❌ API health check failed"
+          docker logs incidentcmd-api
+          exit 1
+
+      - name: 🧹 Stop test container
+        if: always()
+        run: |
+          docker rm -f incidentcmd-api || true
